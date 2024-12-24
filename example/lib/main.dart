@@ -211,6 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void getMessageList() {
     users = [];
+
     users.add(
       DRUIChatUser(
         id: Random().nextInt(10000),
@@ -309,6 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
             "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
       ),
     );
+
     DRChatService.chatService.setMessageLists(users);
   }
 

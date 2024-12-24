@@ -15,10 +15,13 @@ class DRUIMessage extends StatefulWidget {
 class _DRUIMessage extends State<DRUIMessage> {
   bool isBottom = false;
   bool isRefresh = true;
+  bool isFirst = true;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (DRChatService.chatService.onMessageLoaded != null) {
+        isFirst = true;
+        DRChatService.chatService.messageList = [];
         DRChatService.chatService.onMessageLoaded!("loading");
       }
     });
@@ -51,6 +54,8 @@ class _DRUIMessage extends State<DRUIMessage> {
     return WillPopScope(
       onWillPop: () async {
         if (DRUIChatBubble.baseContext != null) {
+          DRChatService.chatService.messageList = [];
+          DRChatService.chatService.chatMessageList = [];
           DRUIChatBubble.show(DRUIChatBubble.baseContext!);
         }
         return true;
@@ -65,51 +70,67 @@ class _DRUIMessage extends State<DRUIMessage> {
         ),
         body: Center(
           child: FlutterPullUpDownRefresh(
-              scrollController: ScrollController(),
-              showRefreshIndicator: true,
-              refreshIndicatorColor: Colors.red,
-              isLoading: false,
-              loadingColor: Colors.red,
-              loadingBgColor: Colors.grey.withAlpha(100),
-              isBootomLoading: isBottom,
-              bottomLoadingColor: Colors.green,
-              scaleBottomLoading: 0.6,
-              onRefresh: () async {
-                //Start refresh
-                await pullRefresh();
-                //End refresh
-              },
-              onAtBottom: (status) {
-                if (status) {
-                  if (!isBottom) {
-                    setState(() {
-                      isBottom = true;
-                      onReload();
-                    });
-                  }
+            scrollController: ScrollController(),
+            showRefreshIndicator: true,
+            refreshIndicatorColor: Colors.red,
+            isLoading: false,
+            loadingColor: Colors.red,
+            loadingBgColor: Colors.grey.withAlpha(100),
+            isBootomLoading: isBottom,
+            bottomLoadingColor: Colors.green,
+            scaleBottomLoading: 0.6,
+            onRefresh: () async {
+              //Start refresh
+              await pullRefresh();
+              //End refresh
+            },
+            onAtBottom: (status) {
+              if (status) {
+                if (!isBottom) {
+                  setState(() {
+                    isBottom = true;
+                    onReload();
+                  });
                 }
-              },
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: DRChatService.chatService.messageList?.length,
-                itemBuilder: (context, n) {
-                  return InkWell(
-                    onTap: () {
-                      if (DRUIChatBubble.baseContext != null) {
-                        Navigator.push(
-                          DRUIChatBubble.baseContext!,
-                          MaterialPageRoute(
-                              builder: (context) => DRUIChat(
-                                  DRChatService.chatService.messageList![n])),
-                        );
-                      }
+              }
+            },
+            child: DRChatService.chatService.messageList!.isNotEmpty
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: DRChatService.chatService.messageList?.length,
+                    itemBuilder: (context, n) {
+                      return InkWell(
+                        onTap: () {
+                          if (DRUIChatBubble.baseContext != null) {
+                            Navigator.push(
+                              DRUIChatBubble.baseContext!,
+                              MaterialPageRoute(
+                                  builder: (context) => DRUIChat(DRChatService
+                                      .chatService.messageList![n])),
+                            );
+                          }
+                        },
+                        child: getChatItem(
+                            DRChatService.chatService.messageList![n], n),
+                      );
                     },
-                    child: getChatItem(
-                        DRChatService.chatService.messageList![n], n),
-                  );
-                },
-              )),
+                  )
+                : isFirst || DRChatService.chatService.messageList!.isEmpty
+                    ? Container(
+                        alignment: Alignment.center,
+                        color: Colors.transparent,
+                        child: const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ),
+                      )
+                    : Container(
+                        alignment: Alignment.center,
+                        color: Colors.transparent,
+                        child: const Text("No message"),
+                      ),
+          ),
         ),
       ),
     );
