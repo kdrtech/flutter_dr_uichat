@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dr_uichat/flutter_dr_uichat.dart';
 
 void main() {
+  DRChatConfig.config.set();
   runApp(const MyApp());
 }
 
@@ -55,19 +59,260 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  List<DRUIChatUser> users = [];
+  List<DRUIChatMessage> chatMessages = [];
+  @override
+  void initState() {
+    super.initState();
+    //show chat bubble
+    initChatBubble();
+    //Set Message screen event
+    setDRMessageEvent();
+    //SetChat screen event
+    setDRChatEvent();
+  }
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  void initChatBubble() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      DRUIChatBubble.initChatBubble(
+        context,
+        backgroundColor: Colors.green,
+        delay: const Duration(seconds: 2), // Optional delay before showing
+      );
     });
   }
 
+  //Testing  Receiver
+  void testingReceiver() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      DRChatService.chatService.addReceiver(
+        DRUIChatMessage(
+          id: 1,
+          name: "kuchdarith",
+          isSender: false,
+          message: "Testing hi from Receiver?",
+          photo:
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyCF3FunYuwPDPL9ovTOR0MQXdDJpW_ofgXA&s",
+          createdAt: DateTime.now().toUtc().toString(),
+        ),
+      );
+    });
+  }
+
+  ///Start Chat Screen
+  void setDRChatEvent() {
+    //Chat screen ready to add message list.
+    DRChatService.chatService.onChatLoaded = (data) {
+      getChatMessageList();
+    };
+    //Get message when sender send chat to receiver.
+    DRChatService.chatService.onMessage = (message) {
+      DRChatService.chatService.addSender(
+        DRUIChatMessage(
+          id: 1,
+          name: "kuchdarith",
+          photo:
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRXxfn1j1vKFy8yJeBGl2AS6Dcah-lKgHofg&s",
+          isSender: true,
+          message: message,
+          createdAt: DateTime.now().toUtc().toString(),
+        ),
+      );
+      //This testing receiver send back only.
+      testingReceiver();
+    };
+  }
+
+  //Get Chat lists
+  void getChatMessageList() {
+    chatMessages = [];
+    chatMessages.add(
+      DRUIChatMessage(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRXxfn1j1vKFy8yJeBGl2AS6Dcah-lKgHofg&s",
+        isSender: true,
+      ),
+    );
+    chatMessages.add(
+      DRUIChatMessage(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRXxfn1j1vKFy8yJeBGl2AS6Dcah-lKgHofg&s",
+        isSender: true,
+      ),
+    );
+    chatMessages.add(
+      DRUIChatMessage(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyCF3FunYuwPDPL9ovTOR0MQXdDJpW_ofgXA&s",
+        isSender: false,
+      ),
+    );
+    chatMessages.add(
+      DRUIChatMessage(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRXxfn1j1vKFy8yJeBGl2AS6Dcah-lKgHofg&s",
+        isSender: true,
+      ),
+    );
+
+    DRChatService.chatService.setChatMessageLists(chatMessages);
+  }
+  //End Chat Screen
+
+  ///Start Message Screen
+  void setDRMessageEvent() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      //Delete Message.
+      DRChatService.chatService.onDeleteMessage = (data) {
+        print("Delete");
+      };
+      DRChatService.chatService.onMessageRefresh = () async {
+        getMessageList();
+        await Future.delayed(const Duration(seconds: 1));
+      };
+      DRChatService.chatService.onMessageLoadMore = () async {
+        await Future.delayed(const Duration(seconds: 1));
+        loadMoreMessageList();
+      };
+      DRChatService.chatService.onMessageLoaded = (status) {
+        getMessageList();
+      };
+    });
+  }
+
+  void loadMoreMessageList() {
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyCF3FunYuwPDPL9ovTOR0MQXdDJpW_ofgXA&s",
+      ),
+    );
+  }
+
+  void getMessageList() {
+    users = [];
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Kuch Darith",
+        message: "Hi , how are you?",
+        createdAt: "2024-09-12T20:42:19Z",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTyCF3FunYuwPDPL9ovTOR0MQXdDJpW_ofgXA&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Sok San",
+        message: "hahaha",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    users.add(
+      DRUIChatUser(
+        id: Random().nextInt(10000),
+        name: "Bopha",
+        message: "hahaha",
+        photo:
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1oiHvf2LgSX3qMalIRToh28R40FJj4HA0Jg&s",
+      ),
+    );
+    DRChatService.chatService.setMessageLists(users);
+  }
+
+  ///End Message Screen
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -109,16 +354,11 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             Text(
-              '$_counter',
+              '',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
