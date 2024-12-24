@@ -102,8 +102,8 @@ class _DRUIChat extends State<DRUIChat> {
         children: [
           Expanded(
             child: FlutterPullUpDownRefresh(
-              scrollController: _controller,
-              showRefreshIndicator: true,
+              scrollController: ScrollController(),
+              showRefreshIndicator: false,
               refreshIndicatorColor: Colors.red,
               isLoading: false,
               loadingColor: Colors.red,
@@ -117,8 +117,9 @@ class _DRUIChat extends State<DRUIChat> {
                 //End refresh
               },
               child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: false,
+                controller: _controller,
+                //physics: const NeverScrollableScrollPhysics(),
                 itemCount: DRChatService.chatService.chatMessageList?.length,
                 itemBuilder: (context, n) {
                   DRUIChatMessage druiChatMessage =
